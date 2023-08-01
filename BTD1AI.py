@@ -175,6 +175,7 @@ def play_population(population) -> list:
 
             start = get_text(screenshot, 1170, 740, 1320, 780)
             # print("ratio for Start round:", fuzz.ratio(start[:-1], "Start Round"))
+            # TODO build more towers at the same round
             if fuzz.ratio(start[:-1], "Start Round") > 30:
                 old_money = get_number(1335, 292, 1240, 292)
 
@@ -207,7 +208,7 @@ def play_population(population) -> list:
                 print("clicking on start")
                 pyautogui.click(1245, 760)
 
-            time.sleep(4) # pause before next control
+            time.sleep(4)  # pause before next control
 
             lives = get_number(1335, 320, 1240, 320)
             # print("Lives remaining:", lives)
@@ -454,6 +455,7 @@ if __name__ == '__main__':
             # tower position
             tower_position = gen_xy_pos()
             genotype += [[tower_type, tower_position]]
+
         population += [genotype]
 
     print("Population length:", len(population))

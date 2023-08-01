@@ -38,6 +38,12 @@ The following libraries are required to run the project:
 9. The AI will play through multiple generations using the Genetic Algorithm, selecting the best individuals, applying crossover and mutation, and calculating scores.
 10. The individual with the best score from all generations will be returned as the most successful strategy.
 
-Note: The script interacts with the "Bloons TD 1" game window using screen capture and mouse control. Ensure that the game window is visible and active during execution.
-
 For video demonstrations and updates on this project, you can visit my YouTube channel: [LevelUpGA YouTube Channel](https://www.youtube.com/@LevelUpGA)
+
+## TODO List for Project "Bloons TD 1 vs. AI"
+
+- [ ] Implement logic to prevent placing buildings on top of each other. (Except for nails and glue)
+- [ ] Conduct preliminary testing to identify where certain types of buildings can and cannot be placed on the map.
+- [ ] Explore alternative approaches to genetic algorithms, such as different mutation strategies, without crossover.
+- [ ] Gather data on building and upgrade costs. Note that costs may vary based on different maps and the placement of certain buildings like villages.
+- [ ] Evaluate different strategies for building placement and determine the optimal arrangement of buildings for better performance.

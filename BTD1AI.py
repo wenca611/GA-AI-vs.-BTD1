@@ -177,33 +177,36 @@ def play_population(population) -> list:
             # print("ratio for Start round:", fuzz.ratio(start[:-1], "Start Round"))
             # TODO build more towers at the same round
             if fuzz.ratio(start[:-1], "Start Round") > 30:
-                old_money = get_number(1335, 292, 1240, 292)
+                while True:
+                    old_money = get_number(1335, 292, 1240, 292)
 
-                if gen:
-                    tower_type = gen[0]
-                    tower_xy = gen[1]
-                    if tower_type == 1:
-                        pyautogui.click(1184, 400)
-                    elif tower_type == 2:
-                        pyautogui.click(1214, 400)
-                    elif tower_type == 3:
-                        pyautogui.click(1250, 400)
-                    elif tower_type == 4:
-                        pyautogui.click(1286, 400)
-                    elif tower_type == 5:
-                        pyautogui.click(1324, 400)
+                    if gen:
+                        tower_type = gen[0]
+                        tower_xy = gen[1]
+                        if tower_type == 1:
+                            pyautogui.click(1184, 400)
+                        elif tower_type == 2:
+                            pyautogui.click(1214, 400)
+                        elif tower_type == 3:
+                            pyautogui.click(1250, 400)
+                        elif tower_type == 4:
+                            pyautogui.click(1286, 400)
+                        elif tower_type == 5:
+                            pyautogui.click(1324, 400)
 
-                    pyautogui.click(tower_xy)
-                    pyautogui.click(tower_xy)
+                        pyautogui.click(tower_xy)
+                        pyautogui.click(tower_xy)
 
-                    new_money = get_number(1335, 292, 1240, 292)
+                        new_money = get_number(1335, 292, 1240, 292)
 
-                    # print("money:", old_money, new_money)
+                        # print("money:", old_money, new_money)
 
-                    if old_money - new_money > 0:
-                        print("Placing tower type", tower_type, "at position", tower_xy)
-                        if genotype:
-                            gen = genotype.pop(0)
+                        if old_money - new_money > 0:
+                            print("Placing tower type", tower_type, "at position", tower_xy)
+                            if genotype:
+                                gen = genotype.pop(0)
+                        else:
+                            break
 
                 print("clicking on start")
                 pyautogui.click(1245, 760)
@@ -475,6 +478,7 @@ if __name__ == '__main__':
         # Crossover and mutation
         while len(new_generation) < len(population):
             parent1 = random.choice(selected_population)
+            selected_population.remove(parent1)
             parent2 = random.choice(selected_population)
 
             child1, child2 = crossover(parent1, parent2)

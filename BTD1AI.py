@@ -12,8 +12,8 @@ from typing import Optional
 import pygetwindow as gw  # Library for managing windows on the system
 import pytesseract  # Library for using Tesseract OCR engine
 import pyautogui  # Library for GUI automation
-import cv2  # OpenCV library for computer vision tasks
-import numpy as np  # NumPy library for numerical operations
+import cv2  # OpenCV's library for computer vision tasks
+import numpy as np  # NumPy's library for numerical operations
 from fuzzywuzzy import fuzz  # Library for fuzzy string matching
 from collections import defaultdict  # Defaultdict for handling default values in dictionaries
 import time  # Library for working with time and timing functions
@@ -152,9 +152,9 @@ def play_population(population) -> list:
         list: A list containing the scores of each individual.
     """
     score = []
-    for idx, genotyp in enumerate(population):
+    for idx, genotype in enumerate(population):
         print("\nTrying individual:", idx + 1)
-        print("genotype", genotyp)
+        print("genotype", genotype)
         """Bring the game window to the foreground at each level
         When 'Start Round' is visible, click on it
         Detect game over with 'Lives:0' and start a new game"""
@@ -162,8 +162,8 @@ def play_population(population) -> list:
         money = 650
         lives = 40
         gen = []
-        if genotyp:
-            gen = genotyp.pop(0)
+        if genotype:
+            gen = genotype.pop(0)
 
         while lives > 0:
             # Bring the game window to the foreground
@@ -201,8 +201,8 @@ def play_population(population) -> list:
 
                     if old_money - new_money > 0:
                         print("Placing tower type", tower_type, "at position", tower_xy)
-                        if genotyp:
-                            gen = genotyp.pop(0)
+                        if genotype:
+                            gen = genotype.pop(0)
 
                 print("clicking on start")
                 pyautogui.click(1245, 760)
@@ -253,7 +253,7 @@ def selection(population, scores) -> list:
     # Get indices of individuals sorted by score from highest to lowest
     sorted_indices = sorted(range(len(scores)), key=lambda k: scores[k], reverse=True)
 
-    # Calculate the number of best individuals to keep
+    # Calculate the number of the best individuals to keep
     elite_size = int(0.2 * len(population))
 
     # Select best individuals without repetition
@@ -447,14 +447,14 @@ if __name__ == '__main__':
     for _ in range(20):  # number of individuals in the population 10+
         # number of possible genes in the genotype
         genes_size = random.randint(0, 50)
-        genotyp = []
+        genotype = []
         for _ in range(genes_size):
             # tower type
             tower_type = random.randint(1, 5)
             # tower position
             tower_position = gen_xy_pos()
-            genotyp += [[tower_type, tower_position]]
-        population += [genotyp]
+            genotype += [[tower_type, tower_position]]
+        population += [genotype]
 
     print("Population length:", len(population))
     print(population)

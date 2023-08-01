@@ -39,3 +39,5 @@ The following libraries are required to run the project:
 10. The individual with the best score from all generations will be returned as the most successful strategy.
 
 Note: The script interacts with the "Bloons TD 1" game window using screen capture and mouse control. Ensure that the game window is visible and active during execution.
+
+For video demonstrations and updates on this project, you can visit my YouTube channel: [LevelUpGA YouTube Channel](https://www.youtube.com/@LevelUpGA)

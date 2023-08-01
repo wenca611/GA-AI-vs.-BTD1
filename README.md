@@ -40,10 +40,11 @@ The following libraries are required to run the project:
 
 For video demonstrations and updates on this project, you can visit my YouTube channel: [LevelUpGA YouTube Channel](https://www.youtube.com/@LevelUpGA)
 
-## TODO List for Project "Bloons TD 1 vs. AI"
+## TODO list for Project Bloons TD 1 vs. AI
 
-- [ ] Implement logic to prevent placing buildings on top of each other. (Except for nails and glue)
-- [ ] Conduct preliminary testing to identify where certain types of buildings can and cannot be placed on the map.
-- [ ] Explore alternative approaches to genetic algorithms, such as different mutation strategies, without crossover.
-- [ ] Gather data on building and upgrade costs. Note that costs may vary based on different maps and the placement of certain buildings like villages.
-- [ ] Evaluate different strategies for building placement and determine the optimal arrangement of buildings for better performance.
+- Ensure that buildings can't be placed on top of each other (except for nails and glue).
+- Before running the first generation, test various building types to determine where they can and cannot be placed on the map.
+- Consider alternative approaches to the genetic algorithm, such as using a different method instead of crossover.
+- Investigate the cost of buildings and upgrades (Note: Costs may vary based on different map layouts and building positioning, especially for the village building).
+- Evaluate the buildings and attempt to devise a strategy for optimal placement (Consider using various metrics to assess building effectiveness).
+- Experiment with creating a neural network that takes into account different stats like money, current levels, and the buildings' positions to make recommendations on what buildings to purchase and where to place them.

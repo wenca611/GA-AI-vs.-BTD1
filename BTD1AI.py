@@ -264,9 +264,19 @@ def selection(population, scores) -> list:
     selected_indices = set()
     selected_population = []
     for index in sorted_indices:
-        if len(selected_population) < elite_size and index not in selected_indices:
+        if len(selected_population) >= 2:
+            break
+
+        if index not in selected_indices:
             selected_population.append(population[index])
             selected_indices.add(index)
+
+        # If there are still not enough selected individuals, choose random individuals until we have 2
+    while len(selected_population) < 2:
+        random_index = random.choice(range(len(population)))
+        if random_index not in selected_indices:
+            selected_population.append(population[random_index])
+            selected_indices.add(random_index)
 
     return selected_population
 
@@ -448,7 +458,7 @@ if __name__ == '__main__':
     print("The first generation will have 20 individuals and genes from 0 to 50")
 
     population = []
-    for _ in range(20):  # number of individuals in the population 10+
+    for _ in range(10):  # number of individuals in the population 10+
         # number of possible genes in the genotype
         genes_size = random.randint(0, 50)
         genotype = []
@@ -478,8 +488,11 @@ if __name__ == '__main__':
         # Crossover and mutation
         while len(new_generation) < len(population):
             parent1 = random.choice(selected_population)
+            print("parent1", parent1, "from pop:", selected_population)
             selected_population.remove(parent1)
+            print("selected population - parent1:", selected_population)
             parent2 = random.choice(selected_population)
+            selected_population.append(parent1)
 
             child1, child2 = crossover(parent1, parent2)
 

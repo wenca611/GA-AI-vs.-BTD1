@@ -126,14 +126,15 @@ def gen_xy_pos() -> (int, int):
     return gen_x, gen_y
 
 
-def fitness_function(round, lives, money) -> int:
+def fitness_function(round, money, lives) -> int:
     """
     Calculates the fitness score of an individual based on the provided parameters.
 
     Args:
         round (int): The round reached in the game.
-        lives (int): The number of lives remaining.
         money (int): The amount of money the player has.
+        lives (int): The number of lives remaining.
+
 
     Returns:
         int: The fitness score of the individual, calculated as the sum of the given parameters.

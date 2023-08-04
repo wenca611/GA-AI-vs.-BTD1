@@ -41,7 +41,6 @@ The following libraries are required to run the project:
 For video demonstrations and updates on this project, you can visit my YouTube channel: [LevelUpGA YouTube Channel](https://www.youtube.com/@LevelUpGA)
 
 ## TODO list for Project Bloons TD vs. AI
-- build more towers at the same round
 - Ensure that buildings can't be placed on top of each other (except for nails and glue).
 - Before running the first generation, test various building types to determine where they can and cannot be placed on the map.
 - Consider alternative approaches to the genetic algorithm, such as using a different method instead of crossover.

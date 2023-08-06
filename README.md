@@ -11,7 +11,7 @@ This project aims to create an AI that plays the game "Bloons TD 1" using screen
 Python 3.9
 
 ## Version
-1.1
+1.2
 
 ## Required Libraries
 The following libraries are required to run the project:
@@ -42,7 +42,6 @@ For video demonstrations and updates on this project, you can visit my YouTube c
 
 ## TODO list for Project Bloons TD vs. AI
 - Ensure that buildings can't be placed on top of each other (except for nails and glue).
-- Before running the first generation, test various building types to determine where they can and cannot be placed on the map.
 - Consider alternative approaches to the genetic algorithm, such as using a different method instead of crossover.
 - Investigate the cost of buildings and upgrades (Note: Costs may vary based on different map layouts and building positioning, especially for the village building).
 - Evaluate the buildings and attempt to devise a strategy for optimal placement (Consider using various metrics to assess building effectiveness).

@@ -4,7 +4,7 @@ Description: GA AI playing BTD 1 using screen and mouse
 Author: Bc. Václav Pastušek
 Date: 30.07.2023
 Python: 3.9
-Version: 1.1
+Version: 1.2
 """
 
 # Import necessary libraries
@@ -19,6 +19,7 @@ from collections import defaultdict  # Defaultdict for handling default values i
 import time  # Library for working with time and timing functions
 import random  # Library for generating random numbers and selections
 import pyperclip  # Library for interacting with the clipboard (copy/paste operations)
+import copy
 
 # Set the path to the Tesseract executable
 pytesseract.pytesseract.tesseract_cmd = 'D:/GAMES/Tesseract/tesseract.exe'
@@ -76,14 +77,14 @@ def get_number(a, b, c, d) -> Optional[int]:
         Optional[int]: The extracted number as an integer, or None if no valid number is found.
     """
     # Hover the mouse over the area with numbers (assuming numbers are at position x=a, y=b, width=c-a, height=d-b)
-    pyautogui.moveTo(a, b, duration=0.5)
-    pyautogui.dragTo(c, d, duration=0.5, button='left')
+    pyautogui.moveTo(a, b, duration=0.02)
+    pyautogui.dragTo(c, d, duration=0.02, button='left')
 
     # Simulate Ctrl+C hotkey to copy the text to clipboard
     pyautogui.hotkey('ctrl', 'c')
 
     # Wait for the simulated text copy
-    time.sleep(0.1)
+    time.sleep(0.05)
 
     # Get the content of the clipboard
     copied_text = pyperclip.paste()
@@ -98,30 +99,39 @@ def get_number(a, b, c, d) -> Optional[int]:
         return None
 
 
-def gen_xy_pos() -> (int, int):
+def gen_xy_pos(tower_type, tower_map) -> (int, int):
     """
     Generates random (x, y) coordinates within the map area, avoiding specific restricted regions.
+
+    Args:
+        tower_type (int): Index of the tower type.
+        tower_map (list): Tower map containing the weight values.
 
     Returns:
         (int, int): A tuple containing the randomly generated x and y coordinates.
     """
     # Map area
     a, b, c, d = 561, 230, 1139, 825
-    # Areas where clicking on the map is not allowed
-    a1, b1, c1, d1 = 561, 230, 645, 304
-    a2, b2, c2, d2 = 561, 786, 599, 825
+    original_shape = (len(tower_map[tower_type]), len(tower_map[tower_type][0]))
 
-    while True:
-        gen_x = random.randint(a, c)
-        gen_y = random.randint(b, d)
+    weights = [num for row in tower_map[tower_type] for num in row]
+    positions = [num for num in range(len(weights))]
 
-        if a1 < gen_x < c1 and b1 < gen_y < d1:
-            continue
+    # Start measuring time
+    # start_time = time.time()
 
-        if a2 < gen_x < c2 and b2 < gen_y < d2:
-            continue
+    # Generate random position based on weights  TODO optimalization
+    gen_pos = random.choices(positions, weights, k=1)[0]
 
-        break
+    # End measuring time
+    # end_time = time.time()
+    # elapsed_time = end_time - start_time
+    # print(f"Elapsed time: {elapsed_time:.6f} seconds")
+
+    # 1D -> 2D index conversion TODO kontrola
+    gen_y, gen_x = divmod(gen_pos, original_shape[1])
+    gen_x += a
+    gen_y += b
 
     return gen_x, gen_y
 
@@ -171,12 +181,11 @@ def play_population(population) -> list:
             window.activate()
 
             # Get a screenshot of the game using pyautogui
-            time.sleep(0.1)
+            time.sleep(0.05)
             screenshot = pyautogui.screenshot()
 
             start = get_text(screenshot, 1170, 740, 1320, 780)
             # print("ratio for Start round:", fuzz.ratio(start[:-1], "Start Round"))
-            # TODO build more towers at the same round
             if fuzz.ratio(start[:-1], "Start Round") > 30:
                 while True:
                     old_money = get_number(1335, 292, 1240, 292)
@@ -184,15 +193,15 @@ def play_population(population) -> list:
                     if gen:
                         tower_type = gen[0]
                         tower_xy = gen[1]
-                        if tower_type == 1:
+                        if tower_type == 0:
                             pyautogui.click(1184, 400)
-                        elif tower_type == 2:
+                        elif tower_type == 1:
                             pyautogui.click(1214, 400)
-                        elif tower_type == 3:
+                        elif tower_type == 2:
                             pyautogui.click(1250, 400)
-                        elif tower_type == 4:
+                        elif tower_type == 3:
                             pyautogui.click(1286, 400)
-                        elif tower_type == 5:
+                        elif tower_type == 4:
                             pyautogui.click(1324, 400)
 
                         pyautogui.click(tower_xy)
@@ -212,7 +221,7 @@ def play_population(population) -> list:
                 print("clicking on start")
                 pyautogui.click(1245, 760)
 
-            time.sleep(4)  # pause before next control
+            time.sleep(5)  # pause before next control
 
             lives = get_number(1335, 320, 1240, 320)
             # print("Lives remaining:", lives)
@@ -227,7 +236,7 @@ def play_population(population) -> list:
                 screenshot = pyautogui.screenshot()
                 win = get_text(screenshot, 620, 420, 1120, 470)
                 win_ratio = fuzz.ratio(win[:-1], "CONGRATULATIONS!")
-                print("WIN ratio:", win_ratio, win[:-1])
+                # print("WIN ratio:", win_ratio, win[:-1])
 
                 if win_ratio > 35:
                     round = get_number(1335, 260, 1240, 260)
@@ -237,7 +246,6 @@ def play_population(population) -> list:
                     pyautogui.click(850, 540)
                     break
 
-    print("Score:", score)
     print("Best score index:", score.index(max(score)))
     print("Best individual:", population[score.index(max(score))])
 
@@ -272,7 +280,7 @@ def selection(population, scores) -> list:
             selected_population.append(population[index])
             selected_indices.add(index)
 
-        # If there are still not enough selected individuals, choose random individuals until we have 2
+    # If there are still not enough selected individuals, choose random individuals until we have 2
     while len(selected_population) < 2:
         random_index = random.choice(range(len(population)))
         if random_index not in selected_indices:
@@ -328,7 +336,7 @@ def mutation(child, mutation_prob=0.1) -> list:
 
             if x == 0:
                 # Mutation of the first part of the gene to a random number from 0 to 5
-                child[i][0] = random.randint(0, 5)
+                child[i][0] = random.randint(0, 4)
             elif x == 1 and len(gene) >= 2:
                 # Mutation of the second part of the gene to a new x-coordinate
                 while True:
@@ -396,7 +404,7 @@ if __name__ == '__main__':
     print("Reading text using screenshots and comparing")
 
     # Get a screenshot of the game using pyautogui
-    time.sleep(0.1)
+    time.sleep(0.01)
     screenshot = pyautogui.screenshot()
 
     # Area of NEW GAME
@@ -451,23 +459,93 @@ if __name__ == '__main__':
         pyautogui.click(874, 401)  # new game click
 
     print("Identifying the cost of buildings, upgrades, and sales that can be purchased right at the beginning - TODO")
-    print("Knowing the window size and rectangles where not to click")
 
-    print("Creating the first generation, which will initially only contain building purchases without upgrades")
-    print("The principle is to wait for as many rounds as necessary if a building cannot be purchased")
-    print("Also, I will not check if the problem is just that I'm trying to place the building on the map")
+    # Map area
+    a, b, c, d = 561, 230, 1139, 825
+    # Areas where clicking on the map is not allowed
+    a1, b1, c1, d1 = 561, 230, 645, 304
+    a2, b2, c2, d2 = 561, 786, 599, 825
+
+    map_weights = [[100]*(c+1-a) for _ in range(d+1-b)]
+
+    for i in range(0, c + 1 - a):
+        for j in range(0, d + 1 - b):
+            if 0 <= i <= c1-a1 and 0 <= j <= d1-b1:
+                map_weights[i][j] = 0
+            elif 0 <= i <= c2-a2 and 0 <= j <= d2-b2:
+                map_weights[i][j] = 0
+
+    tower_map = [copy.deepcopy(map_weights) for _ in range(5)]
+    tower_price = [int(1e9) for _ in range(5)]
+    sell_price = [0 for _ in range(5)]
+
+    for tower_type in range(len(tower_map)):
+        for j in range(0, d + 1 - b):  # 0-595
+            for i in range(0, c + 1 - a):  # 0-578
+                if i % 40 == 0 and j % 40 == 0 and tower_map[tower_type][i][j] != 0:
+                    if i == 0 or j == 0:
+                        continue
+
+                    old_money = get_number(1335, 292, 1240, 292)
+
+                    if tower_type == 0:
+                        pyautogui.click(1184, 400)
+                    elif tower_type == 1:
+                        pyautogui.click(1214, 400)
+                    elif tower_type == 2:
+                        pyautogui.click(1250, 400)
+                    elif tower_type == 3:
+                        pyautogui.click(1286, 400)
+                    elif tower_type == 4:
+                        pyautogui.click(1324, 400)
+
+                    pyautogui.click(i+a, j+b)
+                    pyautogui.click(i+a, j+b)
+
+                    new_money = get_number(1335, 292, 1240, 292)
+
+                    if new_money < old_money:
+                        tower_map[tower_type][i][j] += int(1e9)
+                        # buy
+                        if tower_price[tower_type] == 1e9:
+                            tower_price[tower_type] = old_money-new_money
+
+                        # sell
+                        pyautogui.click(i + a, j + b)
+                        pyautogui.click(1270, 700)
+
+                        if sell_price[tower_type] == 0:
+                            after_sell_money = get_number(1335, 292, 1240, 292)
+                            sell_price[tower_type] = after_sell_money-new_money
+
+                        # change value for other towers
+                        for other_tower_type in range(len(tower_map)):
+                            if other_tower_type != tower_type:
+                                tower_map[other_tower_type][i][j] += 500
+
+                        if new_money+sell_price[tower_type] < tower_price[tower_type]:
+                            # reset
+                            pyautogui.click(1310, 811)
+
+                    else:
+                        tower_map[tower_type][i][j] //= 10
+                        # change value for other towers
+                        for other_tower_type in range(len(tower_map)):
+                            if other_tower_type != tower_type:
+                                tower_map[other_tower_type][i][j] //= 2
+
     print("The first generation will have 20 individuals and genes from 0 to 50")
 
     population = []
-    for _ in range(10):  # number of individuals in the population 10+
+    for _ in range(20):  # number of individuals in the population 10+
         # number of possible genes in the genotype
         genes_size = random.randint(0, 50)
         genotype = []
         for _ in range(genes_size):
             # tower type
-            tower_type = random.randint(1, 5)
+            tower_type = random.randint(0, 4)
             # tower position
-            tower_position = gen_xy_pos()
+            tower_position = gen_xy_pos(tower_type, tower_map)
             genotype += [[tower_type, tower_position]]
 
         population += [genotype]
@@ -479,7 +557,7 @@ if __name__ == '__main__':
 
     # number of generations 10+
     for i in range(10):
-        print("Generation", i + 1)
+        print("\nGeneration", i + 1)
         # Select the best individuals for the next generation
         selected_population = selection(population, scores)
 
@@ -489,20 +567,20 @@ if __name__ == '__main__':
         # Crossover and mutation
         while len(new_generation) < len(population):
             parent1 = random.choice(selected_population)
-            print("parent1", parent1, "from pop:", selected_population)
+            # print("parent1", parent1, "from pop:", selected_population)
             selected_population.remove(parent1)
-            print("selected population - parent1:", selected_population)
+            # print("selected population - parent1:", selected_population)
             parent2 = random.choice(selected_population)
             selected_population.append(parent1)
 
             child1, child2 = crossover(parent1, parent2)
 
             # Mutation probability for the first child
-            if random.random() < 0.05:
+            if random.random() < 0.02:
                 child1 = mutation(child1)
 
             # Mutation probability for the second child
-            if random.random() < 0.05:
+            if random.random() < 0.02:
                 child2 = mutation(child2)
 
             # Add both offspring to the new generation
@@ -514,10 +592,13 @@ if __name__ == '__main__':
 
         # Calculate the score of the new generation
         scores = play_population(population)
+
+        print("Population:", population)
+        print("Score:", scores)
         print("Best in this generation:", scores.index(max(scores)), population[scores.index(max(scores))])
 
     # Return the individual with the best score from all generations
     best_individual = population[scores.index(max(scores))]
-    print("Best individual:", scores.index(max(scores)), best_individual)
+    print("Best individual ever:", scores.index(max(scores)), best_individual)
 
 

@@ -11,7 +11,7 @@ This project aims to create an AI that plays the game "Bloons TD 1" using screen
 Python 3.9
 
 ## Version
-1.2
+1.3
 
 ## Required Libraries
 The following libraries are required to run the project:

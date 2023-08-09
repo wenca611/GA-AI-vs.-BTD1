@@ -4,7 +4,7 @@ Description: GA AI playing BTD 1 using screen and mouse
 Author: Bc. Václav Pastušek
 Date: 30.07.2023
 Python: 3.9
-Version: 1.2
+Version: 1.3
 """
 
 # Import necessary libraries
@@ -19,10 +19,101 @@ from collections import defaultdict  # Defaultdict for handling default values i
 import time  # Library for working with time and timing functions
 import random  # Library for generating random numbers and selections
 import pyperclip  # Library for interacting with the clipboard (copy/paste operations)
-import copy
+import copy  # Library for shallow and deep copy operations
+
 
 # Set the path to the Tesseract executable
 pytesseract.pytesseract.tesseract_cmd = 'D:/GAMES/Tesseract/tesseract.exe'
+
+
+def save_data_to_file(tower_map, tower_price, sell_price, file_path):
+    """
+    Save data to a file in a custom simple format.
+
+    Args:
+        tower_map (list): 2D array of values for tower_map.
+        tower_price (list): 1D array of values for tower_price.
+        sell_price (list): 1D array of values for sell_price.
+        file_path (str): Path to the file where data will be saved.
+    """
+    with open(file_path, "w") as file:
+        # Writing tower_map
+        file.write("tower_map\n")
+        for row in tower_map:
+            file.write(" ".join(str(val) for val in row))
+            file.write("\n")
+
+        # Writing tower_price
+        file.write("tower_price\n")
+        file.write(" ".join(str(val) for val in tower_price))
+        file.write("\n")
+
+        # Writing sell_price
+        file.write("sell_price\n")
+        file.write(" ".join(str(val) for val in sell_price))
+        file.write("\n")
+
+
+def load_data_from_file(file_path):
+    """
+    Load data from a file in a custom simple format.
+
+    Args:
+        file_path (str): Path to the file from which you want to load data.
+
+    Returns:
+        tuple: Tuple containing the loaded data: (tower_map, tower_price, sell_price).
+    """
+    try:
+        with open(file_path, "r") as file:
+            data_lines = file.readlines()
+    except FileNotFoundError:
+        # If the file doesn't exist, return empty data
+        return [], [], []
+
+    tower_map = []
+    tower_price = []
+    sell_price = []
+
+    flags = [False]*3
+    for line in data_lines:
+        print("Got line:", line[:150])
+        line = line.strip()
+        if line == "tower_map":
+            if any(flags):
+                print("Problem 1")
+                exit(1)
+            else:
+                flags[0] = True
+        elif line == "tower_price":
+            if not flags[0] or flags[1] or flags[2]:
+                print("Problem 2")
+                exit(1)
+            else:
+                flags[:2] = [False, True]
+        elif line == "sell_price":
+            if flags[0] or not flags[1] or flags[2]:
+                print("Problem 3")
+                exit(1)
+            else:
+                flags[1:3] = [False, True]
+        else:
+            if flags[0]:
+                rows = [val.replace("[", "").replace("]", "") for val in line.split("] [")]
+                int_rows = []
+                for row in rows:
+                    int_rows.append([int(val) for val in row.split(", ")])
+                tower_map.append(int_rows)
+            if flags[1]:
+                tower_price.extend([int(val) for val in line.split()])
+            if flags[2]:
+                sell_price.extend([int(val) for val in line.split()])
+
+    # print("Tower map:", tower_map)
+    # print("Buy:", tower_price)
+    # print("Sell:", sell_price)
+
+    return tower_map, tower_price, sell_price
 
 
 def get_text(screenshot, a, b, c, d, number_flag=False) -> str:
@@ -128,7 +219,7 @@ def gen_xy_pos(tower_type, tower_map) -> (int, int):
     # elapsed_time = end_time - start_time
     # print(f"Elapsed time: {elapsed_time:.6f} seconds")
 
-    # 1D -> 2D index conversion TODO kontrola
+    # 1D -> 2D index conversion TODO control
     gen_y, gen_x = divmod(gen_pos, original_shape[1])
     gen_x += a
     gen_y += b
@@ -460,79 +551,98 @@ if __name__ == '__main__':
 
     print("Identifying the cost of buildings, upgrades, and sales that can be purchased right at the beginning - TODO")
 
-    # Map area
-    a, b, c, d = 561, 230, 1139, 825
-    # Areas where clicking on the map is not allowed
-    a1, b1, c1, d1 = 561, 230, 645, 304
-    a2, b2, c2, d2 = 561, 786, 599, 825
+    filepath = "tower_data.txt"
 
-    map_weights = [[100]*(c+1-a) for _ in range(d+1-b)]
+    tower_map, tower_price, sell_price = load_data_from_file(filepath)
 
-    for i in range(0, c + 1 - a):
+    if not tower_map:
+        # Map area
+        a, b, c, d = 561, 230, 1139, 825
+        # Areas where clicking on the map is not allowed
+        a1, b1, c1, d1 = 561, 230, 645, 304
+        a2, b2, c2, d2 = 561, 786, 599, 825
+
+        map_weights = [[100]*(c+1-a) for _ in range(d+1-b)]
+
+        # like A[y][x] = A[[x1],[x2],...]
         for j in range(0, d + 1 - b):
-            if 0 <= i <= c1-a1 and 0 <= j <= d1-b1:
-                map_weights[i][j] = 0
-            elif 0 <= i <= c2-a2 and 0 <= j <= d2-b2:
-                map_weights[i][j] = 0
+            for i in range(0, c + 1 - a):
+                if 0 <= i <= c1-a1 and 0 <= j <= d1-b1:
+                    map_weights[j][i] = 0
+                elif 0 <= i <= c2-a2 and 0 <= j <= d2-b2:
+                    map_weights[j][i] = 0
 
-    tower_map = [copy.deepcopy(map_weights) for _ in range(5)]
-    tower_price = [int(1e9) for _ in range(5)]
-    sell_price = [0 for _ in range(5)]
+        tower_map = [copy.deepcopy(map_weights) for _ in range(5)]
+        tower_price = [int(1e9) for _ in range(5)]
+        sell_price = [0 for _ in range(5)]
+        cells_to_reset = []
+        tower_bought_flag = [False]*5
 
-    for tower_type in range(len(tower_map)):
-        for j in range(0, d + 1 - b):  # 0-595
-            for i in range(0, c + 1 - a):  # 0-578
-                if i % 40 == 0 and j % 40 == 0 and tower_map[tower_type][i][j] != 0:
-                    if i == 0 or j == 0:
-                        continue
+        for tower_type in range(len(tower_map)):
+            for j in range(0, d + 1 - b):  # 0-595
+                for i in range(0, c + 1 - a):  # 0-578
+                    if i % 10 == 0 and j % 10 == 0 and tower_map[tower_type][j][i] != 0:  # grid 10x10px
+                        if i == 0 or j == 0:
+                            continue
 
-                    old_money = get_number(1335, 292, 1240, 292)
+                        pyautogui.press('esc')
 
-                    if tower_type == 0:
-                        pyautogui.click(1184, 400)
-                    elif tower_type == 1:
-                        pyautogui.click(1214, 400)
-                    elif tower_type == 2:
-                        pyautogui.click(1250, 400)
-                    elif tower_type == 3:
-                        pyautogui.click(1286, 400)
-                    elif tower_type == 4:
-                        pyautogui.click(1324, 400)
+                        old_money = get_number(1335, 292, 1240, 292)
 
-                    pyautogui.click(i+a, j+b)
-                    pyautogui.click(i+a, j+b)
+                        if tower_type == 0:
+                            pyautogui.click(1184, 400)
+                        elif tower_type == 1:
+                            pyautogui.click(1214, 400)
+                        elif tower_type == 2:
+                            pyautogui.click(1250, 400)
+                        elif tower_type == 3:
+                            pyautogui.click(1286, 400)
+                        elif tower_type == 4:
+                            pyautogui.click(1324, 400)
 
-                    new_money = get_number(1335, 292, 1240, 292)
+                        pyautogui.click(i+a, j+b)
+                        pyautogui.click(i+a, j+b)
 
-                    if new_money < old_money:
-                        tower_map[tower_type][i][j] += int(1e9)
-                        # buy
-                        if tower_price[tower_type] == 1e9:
-                            tower_price[tower_type] = old_money-new_money
+                        new_money = get_number(1335, 292, 1240, 292)
 
-                        # sell
-                        pyautogui.click(i + a, j + b)
-                        pyautogui.click(1270, 700)
+                        if new_money < old_money:
+                            tower_bought_flag[tower_type] = True
+                            tower_map[tower_type][j][i] *= int(1e6)
+                            # buy
+                            if tower_price[tower_type] == 1e9:
+                                tower_price[tower_type] = old_money-new_money
 
-                        if sell_price[tower_type] == 0:
-                            after_sell_money = get_number(1335, 292, 1240, 292)
-                            sell_price[tower_type] = after_sell_money-new_money
+                            # sell
+                            pyautogui.click(i + a, j + b)
+                            pyautogui.click(1270, 700)
 
-                        # change value for other towers
-                        for other_tower_type in range(len(tower_map)):
-                            if other_tower_type != tower_type:
-                                tower_map[other_tower_type][i][j] += 500
+                            if sell_price[tower_type] == 0:
+                                after_sell_money = get_number(1335, 292, 1240, 292)
+                                sell_price[tower_type] = after_sell_money-new_money
 
-                        if new_money+sell_price[tower_type] < tower_price[tower_type]:
-                            # reset
-                            pyautogui.click(1310, 811)
+                            # change value for other towers
+                            for other_tower_type in range(len(tower_map)):
+                                if other_tower_type != tower_type:
+                                    tower_map[other_tower_type][j][i] *= 5
 
-                    else:
-                        tower_map[tower_type][i][j] //= 10
-                        # change value for other towers
-                        for other_tower_type in range(len(tower_map)):
-                            if other_tower_type != tower_type:
-                                tower_map[other_tower_type][i][j] //= 2
+                            if new_money+sell_price[tower_type] < tower_price[tower_type]:
+                                # reset
+                                pyautogui.click(1310, 811)
+
+                        else:
+                            tower_map[tower_type][j][i] //= 10
+                            # change value for other towers
+                            cells_to_reset.append((tower_type, j, i))
+                            for other_tower_type in range(len(tower_map)):
+                                if other_tower_type != tower_type:
+                                    tower_map[other_tower_type][j][i] //= 2
+
+        for idx, elem in enumerate(tower_bought_flag):
+            if not elem:  # not enough money -> reverse values
+                for tower_type, j, i in cells_to_reset:
+                    tower_map[tower_type][j][i] *= 10
+
+    save_data_to_file(tower_map, tower_price, sell_price, filepath)
 
     print("The first generation will have 20 individuals and genes from 0 to 50")
 
